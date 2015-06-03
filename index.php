@@ -3,30 +3,33 @@
 <head>
   <title>Live Chat Platform</title>
   <link rel="Stylesheet" href="style.css">
-  <link href='http://fonts.googleapis.com/css?family=Open+Sans+Condensed:700' rel='stylesheet' type='text/css'>
+  <link href='http://fonts.googleapis.com/css?family=Ubuntu:300' rel='stylesheet' type='text/css'>
+  <link href='http://fonts.googleapis.com/css?family=Luckiest+Guy' rel='stylesheet' type='text/css'>
   <link href='http://fonts.googleapis.com/css?family=Open+Sans:300' rel='stylesheet' type='text/css'>
 </head>
 
 <body>
-  <div id="outer-box">
 
-    <div id="online-bar"><p>Current Online Users: x</p></div>
+<div id="container">
+  <div id="content-box">
+    <ul>
+    <li>[johay]: writing a line here etc writing a line here etc writing a line here etc writing a line here etc writing a line here etc writing a line here etc writing a line here etc writing a line here etc </li>
+    </ul>
 
-    <div id="name-row">
-      <p>Johay (hh:mm)</p>
-      <p>Johay (hh:mm)</p>
-      <p>Johay (hh:mm)</p>
-      <p>Johay (hh:mm)</p>
-      <p>Johay (hh:mm)</p>
 
-    </div>
+  </div>
+  <div id="userlist">
+    <ul>
+    <li id="users">CURRENTLY ONLINE</li>
+    <li>USER2</li>
+    </ul>
 
-    <div id="content-row">
 
-    </div>
-
-    <div id="post-text"></div>
-
+  </div>
+  <div id="post-content">
+    <input type="text" name="content"> <input type="submit" value="Post">
+    <span id="terms">By clicking post you agree to the <a href="#">Terms and Conditions</a> of our website, and by not obeying them accept the consequences</span>
+  </div>
 </div>
 
 </body>
