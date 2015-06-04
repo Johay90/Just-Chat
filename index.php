@@ -1,9 +1,13 @@
 <?php
 include "db.php";
 $conn = dbh();
+date_default_timezone_set("Europe/London");
 
 if (isset($_POST['submit'])){
   $content = htmlspecialchars($_POST['content']);
+
+  //update users online every time submit button is pressed
+  $sth = $conn->query("DELETE FROM usersonline WHERE `timestamp` < (NOW() - INTERVAL 5 MINUTE)");
 
   if(isset($_COOKIE['chatname']) && $_COOKIE['chatname'] != "null" && !empty($_POST['content'])){
     $name = htmlspecialchars($_COOKIE['chatname']);
@@ -12,7 +16,28 @@ if (isset($_POST['submit'])){
     $sth->bindParam(':name', $name);
     $sth->execute();
 
-    // del old records
+    // check usersonline row
+    $select = $conn->prepare("SELECT * FROM usersonline WHERE name = :name");
+    $select->bindParam(":name", $name);
+    $select->execute();
+    $row = $select->fetch(PDO::FETCH_ASSOC);
+
+    if ($row['name'] == $name){
+      $sth = $conn->prepare("UPDATE usersonline SET timestamp=:timestamp WHERE name = :name");
+      $sth->bindParam(":timestamp", date("Y-m-d H:i:s"));
+      $sth->bindParam(":name", $name);
+      $sth->execute();
+    }
+    else
+    {
+      // insert into insertusers
+      $sth = $conn->prepare("INSERT INTO usersonline (name, timestamp) VALUES (:name, :timestamp)");
+      $sth->bindParam(":name", $name);
+      $sth->bindParam(":timestamp", date("Y-m-d H:i:s"));
+      $sth->execute();
+    }
+
+    // del old records from chat table
     $del = $conn->prepare("DELETE FROM `chat`
                           WHERE id NOT IN (
                           SELECT id
@@ -25,7 +50,8 @@ if (isset($_POST['submit'])){
                           );");
     $del->execute();
   }
-  elseif(!isset($_COOKIE['chatname']) || $_COOKIE['chatname'] == "null"){
+  elseif(!isset($_COOKIE['chatname']) || $_COOKIE['chatname'] == "null")
+  {
     setcookie("chatname", "", time()-3600);
     die();
   }
@@ -67,11 +93,7 @@ $(document).ready(function(){
     function reload_content() {
     $('#contentul').load('index.php #content-box li');
     }
-
     window.setInterval(reload_content, 1000);
-
-
-
     </script>
     <ul id="contentul">
       <?php //ASC
@@ -88,9 +110,23 @@ $(document).ready(function(){
 
   </div>
   <div id="userlist">
-    <ul>
+    <script>
+    function reload_content() {
+    $('#ulonline').load('index.php #userlist li');
+    }
+    window.setInterval(reload_content, 1000);
+    </script>
+    <ul id="ulonline">
     <li id="users">Currently Online</li>
-    <li>USER2</li>
+
+    <?php
+    $sth = $conn->prepare("SELECT * FROM usersonline ORDER BY id");
+    $sth->execute();
+    $online = $sth->fetchAll();
+
+    foreach ($online as $row) {
+      echo   "<li>" . $row['name'] . "</li>";
+    }?>
     </ul>
 
 
