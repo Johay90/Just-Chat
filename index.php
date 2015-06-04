@@ -1,3 +1,38 @@
+<?php
+include "db.php";
+$conn = dbh();
+
+if (isset($_POST['submit'])){
+  $content = htmlspecialchars($_POST['content']);
+
+  if(isset($_COOKIE['chatname']) && $_COOKIE['chatname'] != "null" && !empty($_POST['content'])){
+    $name = htmlspecialchars($_COOKIE['chatname']);
+    $sth = $conn->prepare("INSERT INTO chat (content, name) VALUES (:content, :name)");
+    $sth->bindParam(':content', $content);
+    $sth->bindParam(':name', $name);
+    $sth->execute();
+
+    // del old records
+    $del = $conn->prepare("DELETE FROM `chat`
+                          WHERE id NOT IN (
+                          SELECT id
+                          FROM (
+                          SELECT id
+                          FROM `chat`
+                          ORDER BY id DESC
+                          LIMIT 35
+                          ) chatalias
+                          );");
+    $del->execute();
+  }
+  elseif(!isset($_COOKIE['chatname']) || $_COOKIE['chatname'] == "null"){
+    setcookie("chatname", "", time()-3600);
+    die();
+  }
+}
+?>
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -28,23 +63,43 @@ $(document).ready(function(){
   <main>
 
   <div id="content-box">
-    <ul>
-    <li>[johay]: writing a line here etc writing a line here etc writing a line here etc writing a line here etc writing a line here etc writing a line here etc writing a line here etc writing a line here etc </li>
+    <script>
+    function reload_content() {
+    $('#contentul').load('index.php #content-box li');
+    }
+
+    window.setInterval(reload_content, 1000);
+
+
+
+    </script>
+    <ul id="contentul">
+      <?php //ASC
+      $sth = $conn->prepare("SELECT * FROM chat ORDER BY id DESC");
+      $sth->execute();
+      $rows = $sth->fetchAll();
+
+      foreach ($rows as $row) {
+        echo   "<li>[" . $row['name'] . "]: " . $row['content'] . "</li>";
+      }
+      ?>
     </ul>
 
 
   </div>
   <div id="userlist">
     <ul>
-    <li id="users">CURRENTLY ONLINE</li>
+    <li id="users">Currently Online</li>
     <li>USER2</li>
     </ul>
 
 
   </div>
   <div id="post-content">
-    <input type="text" name="content"> <input type="submit" value="Post">
-    <span id="terms">By clicking post you agree to the <a href="#">Terms and Conditions</a> of our website, and by not obeying them accept the consequences</span>
+    <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
+      <input type="text" name="content" autocomplete="off" autofocus> <input type="submit" name="submit" value="Post">
+      <span id="terms">By clicking post you agree to the <a href="#">Terms and Conditions</a> of our website, and by not obeying them accept the consequences</span>
+    </form>
   </div>
 
 </main>
