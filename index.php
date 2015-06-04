@@ -1,13 +1,16 @@
 <?php
 include "db.php";
 $conn = dbh();
-date_default_timezone_set("Europe/London");
+date_default_timezone_set('UTC');
+$time = date("Y-m-d H:i:s");
 
 if (isset($_POST['submit'])){
   $content = htmlspecialchars($_POST['content']);
 
   //update users online every time submit button is pressed
-  $sth = $conn->query("DELETE FROM usersonline WHERE `timestamp` < (NOW() - INTERVAL 5 MINUTE)");
+  $sql = "DELETE FROM usersonline WHERE timestamp < (NOW() - INTERVAL 10 MINUTE)";
+  $q = $conn->prepare($sql);
+  $q->execute();
 
   if(isset($_COOKIE['chatname']) && $_COOKIE['chatname'] != "null" && !empty($_POST['content'])){
     $name = htmlspecialchars($_COOKIE['chatname']);
@@ -24,8 +27,8 @@ if (isset($_POST['submit'])){
 
     if ($row['name'] == $name){
       $sth = $conn->prepare("UPDATE usersonline SET timestamp=:timestamp WHERE name = :name");
-      $sth->bindParam(":timestamp", date("Y-m-d H:i:s"));
       $sth->bindParam(":name", $name);
+      $sth->bindParam(":timestamp", $time);
       $sth->execute();
     }
     else
@@ -33,7 +36,7 @@ if (isset($_POST['submit'])){
       // insert into insertusers
       $sth = $conn->prepare("INSERT INTO usersonline (name, timestamp) VALUES (:name, :timestamp)");
       $sth->bindParam(":name", $name);
-      $sth->bindParam(":timestamp", date("Y-m-d H:i:s"));
+      $sth->bindParam(":timestamp", $time);
       $sth->execute();
     }
 
